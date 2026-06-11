@@ -1,8 +1,15 @@
 import { Router, Request, Response } from 'express';
-import { SegmentQuerySchema, DraftMessageSchema, CampaignInsightSchema } from '../validators/schemas';
+import {
+  SegmentQuerySchema,
+  DraftMessageSchema,
+  CampaignInsightSchema,
+  CampaignStrategyInputSchema,
+  SaveStrategyInputSchema
+} from '../validators/schemas';
 import { z } from 'zod';
 import * as aiService from '../services/aiService';
 import { previewSegmentQuery } from '../services/segmentService';
+import * as strategistService from '../services/strategistService';
 
 export const aiRouter = Router();
 
@@ -27,6 +34,20 @@ aiRouter.post('/campaign-insight', async (req: Request, res: Response) => {
   res.json({ success: true, data: insight });
 });
 
+// POST /api/ai/campaign-strategy — generate complete strategized campaign
+aiRouter.post('/campaign-strategy', async (req: Request, res: Response) => {
+  const { goal } = CampaignStrategyInputSchema.parse(req.body);
+  const strategy = await strategistService.generateCampaignStrategy(goal);
+  res.json({ success: true, data: strategy });
+});
+
+// POST /api/ai/campaign-strategy/save — save generated campaign and segment
+aiRouter.post('/campaign-strategy/save', async (req: Request, res: Response) => {
+  const input = SaveStrategyInputSchema.parse(req.body);
+  const campaign = await strategistService.saveCampaignFromStrategy(input);
+  res.status(201).json({ success: true, data: campaign });
+});
+
 // POST /api/ai/chat — free-form AI chat
 const ChatSchema = z.object({
   messages: z.array(z.object({
@@ -40,3 +61,4 @@ aiRouter.post('/chat', async (req: Request, res: Response) => {
   const response = await aiService.chatWithAI(messages);
   res.json({ success: true, data: { response } });
 });
+

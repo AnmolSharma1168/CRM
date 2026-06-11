@@ -29,6 +29,7 @@ export default function NewCampaignPage() {
   const [selectedSegment, setSelectedSegment] = useState<Segment | null>(null);
   const [channel, setChannel] = useState<MessageChannel>('whatsapp');
   const [campaignName, setCampaignName] = useState('');
+  const [cost, setCost] = useState<number>(1000);
   const [goal, setGoal] = useState('');
   const [variants, setVariants] = useState<MessageVariant[]>([]);
   const [selectedVariant, setSelectedVariant] = useState<MessageVariant | null>(null);
@@ -76,6 +77,7 @@ export default function NewCampaignPage() {
         segment_id: selectedSegment.id,
         channel,
         message_content: messageBody,
+        cost: Number(cost),
       });
       const campaign = campRes.data as { id: string };
       // Launch it
@@ -144,12 +146,22 @@ export default function NewCampaignPage() {
                 value={campaignName}
                 onChange={(e) => setCampaignName(e.target.value)}
               />
-              <Select
-                label="Channel"
-                options={CHANNELS.map(c => ({ value: c.value, label: c.label }))}
-                value={channel}
-                onChange={(e) => setChannel(e.target.value as MessageChannel)}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <Select
+                  label="Channel"
+                  options={CHANNELS.map(c => ({ value: c.value, label: c.label }))}
+                  value={channel}
+                  onChange={(e) => setChannel(e.target.value as MessageChannel)}
+                />
+                <Input
+                  label="Campaign Cost (₹)"
+                  type="number"
+                  min="1"
+                  placeholder="1000"
+                  value={cost}
+                  onChange={(e) => setCost(Number(e.target.value))}
+                />
+              </div>
             </div>
           </Card>
 

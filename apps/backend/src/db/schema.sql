@@ -67,6 +67,7 @@ create table if not exists campaigns (
   message_content text not null,
   status          text not null default 'draft'
                     check (status in ('draft', 'scheduled', 'running', 'completed', 'failed')),
+  cost            numeric(10, 2) not null default 1000.00,
   scheduled_at    timestamptz,
   launched_at     timestamptz,
   completed_at    timestamptz,
@@ -103,15 +104,39 @@ create index if not exists idx_communications_status on communications(status);
 -- campaign_stats
 -- ============================================================
 create table if not exists campaign_stats (
-  id              uuid primary key default uuid_generate_v4(),
-  campaign_id     uuid unique not null references campaigns(id) on delete cascade,
-  total_sent      integer not null default 0,
-  total_delivered integer not null default 0,
-  total_failed    integer not null default 0,
-  total_opened    integer not null default 0,
-  total_clicked   integer not null default 0,
-  updated_at      timestamptz not null default now()
+  id                  uuid primary key default uuid_generate_v4(),
+  campaign_id         uuid unique not null references campaigns(id) on delete cascade,
+  total_sent          integer not null default 0,
+  total_delivered     integer not null default 0,
+  total_failed        integer not null default 0,
+  total_opened        integer not null default 0,
+  total_clicked       integer not null default 0,
+  total_conversions   integer not null default 0,
+  total_revenue       numeric(12, 2) not null default 0,
+  conversion_rate     numeric(5, 4) not null default 0,
+  roi                 numeric(10, 2) not null default 0,
+  average_order_value numeric(12, 2) not null default 0,
+  updated_at          timestamptz not null default now()
 );
+
+-- ============================================================
+-- campaign_conversions
+-- ============================================================
+create table if not exists campaign_conversions (
+  id              uuid primary key default uuid_generate_v4(),
+  campaign_id     uuid not null references campaigns(id) on delete cascade,
+  communication_id uuid not null references communications(id) on delete cascade,
+  customer_id     uuid not null references customers(id) on delete cascade,
+  order_id        uuid not null references orders(id) on delete cascade,
+  order_amount    numeric(10, 2) not null,
+  attributed_at   timestamptz not null default now(),
+  attribution_type text not null,
+  created_at      timestamptz not null default now()
+);
+
+create index if not exists idx_conversions_campaign_id on campaign_conversions(campaign_id);
+create index if not exists idx_conversions_customer_id on campaign_conversions(customer_id);
+create index if not exists idx_conversions_order_id on campaign_conversions(order_id);
 
 -- ============================================================
 -- Helper function: update campaign_stats from communications
@@ -122,15 +147,79 @@ returns void
 language plpgsql
 security definer
 as $$
+declare
+  v_total_clicked integer;
+  v_total_conversions integer;
+  v_total_revenue numeric(12, 2);
+  v_campaign_cost numeric(10, 2);
+  v_conversion_rate numeric(5, 4);
+  v_average_order_value numeric(12, 2);
+  v_roi numeric(10, 2);
 begin
-  insert into campaign_stats (campaign_id, total_sent, total_delivered, total_failed, total_opened, total_clicked, updated_at)
+  -- Get clicks
+  select count(*) filter (where status = 'clicked')
+  into v_total_clicked
+  from communications
+  where campaign_id = p_campaign_id;
+
+  -- Get conversions from campaign_conversions
+  select count(*), coalesce(sum(order_amount), 0)
+  into v_total_conversions, v_total_revenue
+  from campaign_conversions
+  where campaign_id = p_campaign_id;
+
+  -- Get campaign cost
+  select coalesce(cost, 1000.00)
+  into v_campaign_cost
+  from campaigns
+  where id = p_campaign_id;
+
+  -- Calculate rates
+  if v_total_clicked > 0 then
+    v_conversion_rate := v_total_conversions::numeric / v_total_clicked::numeric;
+  else
+    v_conversion_rate := 0.0000;
+  end if;
+
+  if v_total_conversions > 0 then
+    v_average_order_value := v_total_revenue / v_total_conversions;
+  else
+    v_average_order_value := 0.00;
+  end if;
+
+  if v_campaign_cost > 0 then
+    v_roi := (v_total_revenue - v_campaign_cost) / v_campaign_cost;
+  else
+    v_roi := 0.00;
+  end if;
+
+  insert into campaign_stats (
+    campaign_id, 
+    total_sent, 
+    total_delivered, 
+    total_failed, 
+    total_opened, 
+    total_clicked, 
+    total_conversions, 
+    total_revenue, 
+    conversion_rate, 
+    roi, 
+    average_order_value, 
+    updated_at
+  )
   select
     p_campaign_id,
     count(*) filter (where status != 'pending'),
     count(*) filter (where status in ('delivered', 'opened', 'read', 'clicked')),
     count(*) filter (where status = 'failed'),
     count(*) filter (where status in ('opened', 'read', 'clicked')),
-    count(*) filter (where status = 'clicked')
+    v_total_clicked,
+    v_total_conversions,
+    v_total_revenue,
+    v_conversion_rate,
+    v_roi,
+    v_average_order_value,
+    now()
   from communications
   where campaign_id = p_campaign_id
   on conflict (campaign_id) do update set
@@ -139,6 +228,11 @@ begin
     total_failed    = excluded.total_failed,
     total_opened    = excluded.total_opened,
     total_clicked   = excluded.total_clicked,
+    total_conversions = excluded.total_conversions,
+    total_revenue   = excluded.total_revenue,
+    conversion_rate = excluded.conversion_rate,
+    roi             = excluded.roi,
+    average_order_value = excluded.average_order_value,
     updated_at      = now();
 end;
 $$;

@@ -14,25 +14,32 @@ app.use(cors());
 app.use(express.json());
 
 // ---- Outcome simulation ------------------------------------
-function simulateOutcome(): Pick<CallbackJobData, 'outcome' | 'willOpen' | 'willClick' | 'delayMs'> {
+function simulateOutcome(): {
+  outcome: 'delivered' | 'failed';
+  willOpen: boolean;
+  willClick: boolean;
+  willConvert: boolean;
+  delayMs: number;
+} {
   const rand = Math.random();
   
-  // 70% delivered, 10% failed, 20% fail silently (treated as failed)
-  const isDelivered = rand < 0.70;
-  const isFailed = rand >= 0.70 && rand < 0.80;
-  // 20% "lost" — still report as failed to be honest
-  const outcome: 'delivered' | 'failed' = (isDelivered) ? 'delivered' : 'failed';
+  // 90% delivered, 10% failed
+  const isDelivered = rand < 0.90;
+  const outcome: 'delivered' | 'failed' = isDelivered ? 'delivered' : 'failed';
 
-  // 40% of delivered will open
-  const willOpen = isDelivered && Math.random() < 0.40;
+  // 70% of delivered will open
+  const willOpen = isDelivered && Math.random() < 0.70;
   
   // 20% of opened will click
   const willClick = willOpen && Math.random() < 0.20;
 
+  // 5% of clicked will convert
+  const willConvert = willClick && Math.random() < 0.05;
+
   // Random delay 2-8 seconds
   const delayMs = Math.floor(Math.random() * 6000) + 2000;
 
-  return { outcome, willOpen, willClick, delayMs };
+  return { outcome, willOpen, willClick, willConvert, delayMs };
 }
 
 // ---- Validation --------------------------------------------
@@ -41,6 +48,7 @@ const SendSchema = z.object({
   message: z.string().min(1),
   channel: z.enum(['whatsapp', 'sms', 'email', 'rcs']),
   communicationId: z.string().uuid(),
+  customerId: z.string().uuid().optional(),
   callbackUrl: z.string().url(),
 });
 
@@ -48,7 +56,7 @@ const SendSchema = z.object({
 app.post('/send', async (req: Request, res: Response) => {
   const payload = SendSchema.parse(req.body);
   
-  const { outcome, willOpen, willClick, delayMs } = simulateOutcome();
+  const { outcome, willOpen, willClick, willConvert, delayMs } = simulateOutcome();
   
   const jobData: CallbackJobData = {
     communicationId: payload.communicationId,
@@ -59,6 +67,8 @@ app.post('/send', async (req: Request, res: Response) => {
     outcome,
     willOpen,
     willClick,
+    willConvert,
+    customerId: payload.customerId,
   };
 
   // Enqueue to BullMQ — NOT setTimeout
@@ -86,6 +96,8 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
+import { queueMetrics } from './worker';
+
 // ---- GET /queue/stats --------------------------------------
 app.get('/queue/stats', async (_req: Request, res: Response) => {
   const [waiting, active, completed, failed] = await Promise.all([
@@ -94,7 +106,25 @@ app.get('/queue/stats', async (_req: Request, res: Response) => {
     callbackQueue.getCompletedCount(),
     callbackQueue.getFailedCount(),
   ]);
-  res.json({ success: true, data: { waiting, active, completed, failed } });
+
+  const avgLatencyMs = queueMetrics.totalJobsProcessed > 0
+    ? Math.round(queueMetrics.totalLatencyMs / queueMetrics.totalJobsProcessed)
+    : 0;
+
+  res.json({
+    success: true,
+    data: {
+      waiting,
+      active,
+      completed,
+      failed,
+      avgLatencyMs,
+      failedJobsCount: queueMetrics.failedJobs,
+      retryCount: queueMetrics.retries,
+      callbackFailuresCount: queueMetrics.callbackFailures,
+      health: 'healthy',
+    },
+  });
 });
 
 // ---- Error handler -----------------------------------------

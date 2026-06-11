@@ -3,6 +3,7 @@ import { CreateCustomerSchema, CustomerQuerySchema, CreateOrderSchema } from '..
 import * as customerService from '../services/customerService';
 import { supabase } from '../db/supabase';
 import { createError } from '../middleware/errorHandler';
+import { processOrderAttribution } from '../services/revenueAttributionService';
 
 export const customersRouter = Router();
 
@@ -57,5 +58,11 @@ customersRouter.post('/orders', async (req: Request, res: Response) => {
 
   // Update customer aggregate
   await supabase.rpc('refresh_customer_aggregate' as never, { p_customer_id: input.customer_id });
+
+  // Run attribution engine automatically
+  await processOrderAttribution(data.id).catch((err) => {
+    console.error(`Attribution processing failed for order ${data.id}:`, err);
+  });
+
   res.status(201).json({ success: true, data });
 });

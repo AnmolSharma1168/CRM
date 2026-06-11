@@ -43,16 +43,35 @@ export class MockWorker extends EventEmitter {
     mockQueueInstance.on('job-added', async (job) => {
       mockQueueInstance._removeJob(job);
       mockQueueInstance._incActive(1);
-      try {
-        await this.processor(job);
+      
+      const maxAttempts = 3;
+      let success = false;
+      let lastError = null;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        job.attemptsMade = attempt;
+        try {
+          await this.processor(job);
+          success = true;
+          break;
+        } catch (err: any) {
+          lastError = err;
+          if (attempt < maxAttempts) {
+            this.emit('failed-attempt', job, err);
+            // Wait 1.5 seconds before retrying
+            await new Promise(resolve => setTimeout(resolve, 1500));
+          }
+        }
+      }
+
+      if (success) {
         mockQueueInstance._incCompleted();
         this.emit('completed', job);
-      } catch (err: any) {
+      } else {
         mockQueueInstance._incFailed();
-        this.emit('failed', job, err);
-      } finally {
-        mockQueueInstance._incActive(-1);
+        this.emit('failed', job, lastError);
       }
+      mockQueueInstance._incActive(-1);
     });
   }
 }

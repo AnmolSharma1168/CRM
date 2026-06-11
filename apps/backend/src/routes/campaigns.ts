@@ -22,6 +22,22 @@ campaignsRouter.get('/:id/stats', async (req: Request, res: Response) => {
   res.json({ success: true, data: stats });
 });
 
+// GET /api/campaigns/:id/revenue
+campaignsRouter.get('/:id/revenue', async (req: Request, res: Response) => {
+  const stats = await campaignService.getCampaignStats(String(req.params.id));
+  res.json({
+    success: true,
+    data: {
+      campaignId: stats.campaign_id,
+      revenue: Number(stats.total_revenue || 0),
+      conversions: Number(stats.total_conversions || 0),
+      conversionRate: Number(stats.conversion_rate || 0),
+      averageOrderValue: Number(stats.average_order_value || 0),
+      roi: Number(stats.roi || 0),
+    }
+  });
+});
+
 // GET /api/campaigns/:id/communications
 campaignsRouter.get('/:id/communications', async (req: Request, res: Response) => {
   const page = parseInt(String(req.query.page ?? '1'));

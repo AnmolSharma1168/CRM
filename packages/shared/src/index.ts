@@ -79,6 +79,7 @@ export interface Campaign {
   channel: MessageChannel;
   message_content: string;
   status: CampaignStatus;
+  cost?: number;
   scheduled_at: string | null;
   launched_at: string | null;
   completed_at: string | null;
@@ -131,6 +132,11 @@ export interface CampaignStats {
   total_failed: number;
   total_opened: number;
   total_clicked: number;
+  total_conversions: number;
+  total_revenue: number;
+  conversion_rate: number;
+  roi: number;
+  average_order_value: number;
   updated_at: string;
 }
 
@@ -147,6 +153,7 @@ export interface ChannelSendPayload {
   message: string;
   channel: MessageChannel;
   communicationId: string;
+  customerId?: string;
   callbackUrl: string;
 }
 

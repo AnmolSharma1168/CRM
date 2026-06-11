@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import { Card, Button, Badge, Skeleton, Progress } from '@/components/ui';
 import { api } from '@/lib/api';
-import { formatDate, formatRelativeDate, getChannelEmoji, getStatusColor } from '@/lib/utils';
+import { formatDate, formatRelativeDate, getChannelEmoji, getStatusColor, formatCurrency } from '@/lib/utils';
 import type { Campaign, CampaignStats, Communication, CampaignInsight } from '@/lib/types';
 import { toast } from '@/components/ui/Toaster';
 import { cn } from '@/lib/utils';
@@ -89,6 +89,7 @@ export default function CampaignDetailPage() {
     { name: 'Delivered', value: stats.total_delivered, color: '#8b5cf6' },
     { name: 'Opened', value: stats.total_opened, color: '#a78bfa' },
     { name: 'Clicked', value: stats.total_clicked, color: '#34d399' },
+    { name: 'Converted', value: stats.total_conversions, color: '#10b981' },
   ] : [];
 
   const StatusIcon = ({ status }: { status: string }) => {
@@ -161,6 +162,25 @@ export default function CampaignDetailPage() {
         <div className="mb-6 flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm">
           <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
           Live — auto-refreshing every 5 seconds
+        </div>
+      )}
+
+      {/* Revenue Attribution Grid */}
+      {stats && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[
+            { label: 'Revenue Generated', value: formatCurrency(stats.total_revenue ?? 0), color: 'text-emerald-400', icon: TrendingUp },
+            { label: 'Conversions', value: (stats.total_conversions ?? 0).toLocaleString(), color: 'text-cyan-400', icon: CheckCircle },
+            { label: 'Campaign ROI', value: `${(stats.roi ?? 0).toFixed(2)}x`, color: 'text-purple-400', icon: Sparkles, sub: `Cost: ${formatCurrency(campaign.cost ?? 1000)}` },
+            { label: 'Average Order Value', value: formatCurrency(stats.average_order_value ?? 0), color: 'text-amber-400', icon: Mail },
+          ].map(({ label, value, sub, color, icon: Icon }) => (
+            <Card key={label} className="text-center py-4 border-emerald-500/10 bg-emerald-500/5 hover:border-emerald-500/20 transition-all">
+              <Icon className={cn('w-5 h-5 mx-auto mb-2', color)} />
+              <div className={cn('text-2xl font-bold', color)}>{value}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+              {sub && <div className="text-[10px] text-muted-foreground mt-1">{sub}</div>}
+            </Card>
+          ))}
         </div>
       )}
 
@@ -238,6 +258,41 @@ export default function CampaignDetailPage() {
                   <Progress value={stats.click_rate} color="bg-emerald-500" />
                 </div>
               )}
+              {stats.total_clicked > 0 && (
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">Conversion rate</span>
+                    <span className="text-emerald-400 font-medium">
+                      {((stats.total_conversions / stats.total_clicked) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <Progress value={(stats.total_conversions / stats.total_clicked) * 100} color="bg-emerald-500" />
+                </div>
+              )}
+            </div>
+
+            {/* Visual Funnel Pipeline */}
+            <div className="mt-6 pt-6 border-t border-border/30">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Attribution Funnel Pipeline</p>
+              <div className="flex flex-col gap-2">
+                {[
+                  { name: 'Sent', value: stats.total_sent, pct: 100, color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' },
+                  { name: 'Delivered', value: stats.total_delivered, pct: stats.delivery_rate, color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+                  { name: 'Opened', value: stats.total_opened, pct: stats.open_rate, color: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
+                  { name: 'Clicked', value: stats.total_clicked, pct: stats.click_rate, color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+                  { name: 'Converted', value: stats.total_conversions, pct: stats.total_clicked > 0 ? (stats.total_conversions / stats.total_clicked) * 100 : 0, color: 'bg-emerald-600/30 text-emerald-300 border-emerald-500/40' },
+                ].map((step, idx, arr) => (
+                  <div key={step.name} className="flex flex-col items-center">
+                    <div className={cn("w-full flex items-center justify-between p-2 rounded-lg border text-xs font-semibold", step.color)}>
+                      <span>{step.name}</span>
+                      <span className="font-mono text-xs">{step.value.toLocaleString()} ({step.pct.toFixed(0)}%)</span>
+                    </div>
+                    {idx < arr.length - 1 && (
+                      <div className="text-muted-foreground/60 text-[10px] py-0.5">↓</div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </Card>
         )}
@@ -274,6 +329,18 @@ export default function CampaignDetailPage() {
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+            {insight.revenueImpact && (
+              <div className="mb-4 pt-3 border-t border-primary/10">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Revenue Impact</div>
+                <p className="text-xs text-foreground/80 leading-relaxed">{insight.revenueImpact}</p>
+              </div>
+            )}
+            {insight.suggestedNextCampaign && (
+              <div className="pt-3 border-t border-primary/10">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Suggested Next Campaign</div>
+                <p className="text-xs text-foreground/80 leading-relaxed">{insight.suggestedNextCampaign}</p>
               </div>
             )}
           </Card>

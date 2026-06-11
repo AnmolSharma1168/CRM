@@ -49,6 +49,7 @@ export const api = {
     list: () => apiFetch<{ success: boolean; data: unknown[] }>(`/api/campaigns`),
     get: (id: string) => apiFetch<{ success: boolean; data: unknown }>(`/api/campaigns/${id}`),
     stats: (id: string) => apiFetch<{ success: boolean; data: unknown }>(`/api/campaigns/${id}/stats`),
+    revenue: (id: string) => apiFetch<{ success: boolean; data: unknown }>(`/api/campaigns/${id}/revenue`),
     communications: (id: string, page = 1) =>
       apiFetch<{ success: boolean; data: unknown[]; total: number }>(`/api/campaigns/${id}/communications?page=${page}`),
     create: (body: unknown) => apiFetch<{ success: boolean; data: unknown }>(`/api/campaigns`, {
@@ -76,5 +77,16 @@ export const api = {
       apiFetch<{ success: boolean; data: { response: string } }>(`/api/ai/chat`, {
         method: 'POST', body: JSON.stringify({ messages }),
       }),
+    generateStrategy: (goal: string) =>
+      apiFetch<{ success: boolean; data: unknown }>(`/api/ai/campaign-strategy`, {
+        method: 'POST', body: JSON.stringify({ goal }),
+      }),
+    saveStrategy: (body: unknown) =>
+      apiFetch<{ success: boolean; data: unknown }>(`/api/ai/campaign-strategy/save`, {
+        method: 'POST', body: JSON.stringify(body),
+      }),
+  },
+  operations: {
+    metrics: () => apiFetch<{ success: boolean; data: any }>(`/api/operations/metrics`),
   },
 };

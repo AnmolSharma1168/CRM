@@ -195,6 +195,8 @@ export async function generateCampaignInsight(campaignId: string): Promise<{
   summary: string;
   highlights: string[];
   recommendations: string[];
+  revenueImpact?: string;
+  suggestedNextCampaign?: string;
 }> {
   const { data: campaign, error: campError } = await supabase
     .from('campaigns')
@@ -210,7 +212,14 @@ export async function generateCampaignInsight(campaignId: string): Promise<{
     .eq('campaign_id', campaignId)
     .single();
 
-  const statsObj = stats as CampaignStatsWithRates | null;
+  const statsObj = stats as (CampaignStatsWithRates & {
+    total_conversions: number;
+    total_revenue: number;
+    conversion_rate: number;
+    roi: number;
+    average_order_value: number;
+  }) | null;
+
   const deliveryRate = statsObj && statsObj.total_sent > 0
     ? ((statsObj.total_delivered / statsObj.total_sent) * 100).toFixed(1)
     : '0';
@@ -237,18 +246,25 @@ Performance:
 - Failed: ${statsObj?.total_failed ?? 0}
 - Opened: ${statsObj?.total_opened ?? 0} (${openRate}% of delivered)
 - Clicked: ${statsObj?.total_clicked ?? 0} (${clickRate}% of opened)
+- Conversions: ${statsObj?.total_conversions ?? 0}
+- Revenue: ₹${statsObj?.total_revenue ?? 0}
+- Conversion Rate (from clicks): ${(statsObj?.conversion_rate ? statsObj.conversion_rate * 100 : 0).toFixed(2)}%
+- Average Order Value: ₹${statsObj?.average_order_value ?? 0}
+- ROI: ${(statsObj?.roi ?? 0).toFixed(2)}x (Campaign Cost: ₹${(campaign as any).cost ?? 1000.00})
 
 Industry benchmarks for India:
-- WhatsApp: 85% delivery, 45% open rate, 25% CTR
-- SMS: 90% delivery, 25% open rate, 8% CTR  
-- Email: 92% delivery, 18% open rate, 3% CTR
-- RCS: 80% delivery, 35% open rate, 15% CTR
+- WhatsApp: 85% delivery, 45% open rate, 25% CTR, 3% conversion rate
+- SMS: 90% delivery, 25% open rate, 8% CTR, 1.5% conversion rate
+- Email: 92% delivery, 18% open rate, 3% CTR, 2% conversion rate
+- RCS: 80% delivery, 35% open rate, 15% CTR, 2.5% conversion rate
 
 Return ONLY a JSON object with:
 {
-  "summary": "2-3 sentence plain English summary of performance vs benchmarks",
-  "highlights": ["3-4 key findings as bullet points"],
-  "recommendations": ["2-3 actionable next steps"]
+  "summary": "2-3 sentence plain English summary of performance vs benchmarks, focusing on conversions, revenue, and ROI",
+  "highlights": ["3-4 key findings as bullet points, explaining why it succeeded or failed and the revenue impact"],
+  "recommendations": ["2-3 actionable next steps for future campaigns"],
+  "revenueImpact": "A brief analysis of the revenue impact and ROI",
+  "suggestedNextCampaign": "Recommendation for the next campaign to launch"
 }
 
 Be specific, use actual numbers, compare to benchmarks. No markdown in strings.
@@ -263,12 +279,16 @@ Be specific, use actual numbers, compare to benchmarks. No markdown in strings.
       summary: insight.summary ?? '',
       highlights: insight.highlights ?? [],
       recommendations: insight.recommendations ?? [],
+      revenueImpact: insight.revenueImpact ?? '',
+      suggestedNextCampaign: insight.suggestedNextCampaign ?? '',
     };
   } catch {
     return {
       summary: text.slice(0, 500),
       highlights: [],
       recommendations: [],
+      revenueImpact: '',
+      suggestedNextCampaign: '',
     };
   }
 }

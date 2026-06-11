@@ -10,7 +10,7 @@ const CRM_CALLBACK_URL = process.env.CRM_CALLBACK_URL ?? 'http://localhost:3001/
 export async function listCampaigns(): Promise<Campaign[]> {
   const { data, error } = await supabase
     .from('campaigns')
-    .select('*, segments(name, customer_count)')
+    .select('*, segments(name, customer_count), campaign_stats(*)')
     .order('created_at', { ascending: false });
 
   if (error) throw createError(error.message, 500);
@@ -23,6 +23,7 @@ export async function createCampaign(input: {
   segment_id: string;
   channel: Campaign['channel'];
   message_content: string;
+  cost?: number;
 }): Promise<Campaign> {
   const { data, error } = await supabase
     .from('campaigns')
@@ -135,6 +136,7 @@ export async function launchCampaign(id: string): Promise<{ sent: number }> {
           message: campaign.message_content,
           channel: campaign.channel,
           communicationId: comm.id,
+          customerId: comm.customer_id,
           callbackUrl: CRM_CALLBACK_URL,
         }, { timeout: 5000 });
       } catch (err) {
@@ -164,6 +166,11 @@ export async function getCampaignStats(id: string): Promise<CampaignStatsWithRat
       total_failed: 0,
       total_opened: 0,
       total_clicked: 0,
+      total_conversions: 0,
+      total_revenue: 0,
+      conversion_rate: 0,
+      roi: 0,
+      average_order_value: 0,
       updated_at: new Date().toISOString(),
       delivery_rate: 0,
       open_rate: 0,

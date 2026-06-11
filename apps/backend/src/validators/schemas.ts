@@ -45,6 +45,7 @@ export const CreateCampaignSchema = z.object({
   segment_id: z.string().uuid(),
   channel: z.enum(['whatsapp', 'sms', 'email', 'rcs']),
   message_content: z.string().min(1).max(4000),
+  cost: z.number().positive().optional().default(1000.00),
 });
 
 export const DraftMessageSchema = z.object({
@@ -65,3 +66,19 @@ export const ReceiptSchema = z.object({
   status: z.enum(['delivered', 'failed', 'opened', 'read', 'clicked']),
   timestamp: z.string().optional(),
 });
+
+// ---- Strategist ---------------------------------------------
+export const CampaignStrategyInputSchema = z.object({
+  goal: z.string().min(1).max(1000),
+});
+
+export const SaveStrategyInputSchema = z.object({
+  segmentName: z.string().min(1).max(200),
+  naturalLanguageQuery: z.string().min(1).max(2000),
+  sqlFilter: z.string().min(1).max(4000),
+  channel: z.enum(['whatsapp', 'sms', 'email', 'rcs']),
+  messageContent: z.string().min(1).max(4000),
+  campaignName: z.string().min(1).max(200),
+  cost: z.number().positive().optional().default(1000.00),
+});
+

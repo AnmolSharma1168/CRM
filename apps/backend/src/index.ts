@@ -8,6 +8,7 @@ import { segmentsRouter } from './routes/segments';
 import { campaignsRouter } from './routes/campaigns';
 import { receiptsRouter } from './routes/receipts';
 import { aiRouter } from './routes/ai';
+import { operationsRouter } from './routes/operations';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -34,6 +35,7 @@ app.use('/api/segments', segmentsRouter);
 app.use('/api/campaigns', campaignsRouter);
 app.use('/api/receipts', receiptsRouter);
 app.use('/api/ai', aiRouter);
+app.use('/api/operations', operationsRouter);
 
 // ---- Error handler (must be last) --------------------------
 app.use(errorHandler);

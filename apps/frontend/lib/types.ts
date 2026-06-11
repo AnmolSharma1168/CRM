@@ -30,6 +30,7 @@ export type Campaign = {
   channel: MessageChannel;
   message_content: string;
   status: CampaignStatus;
+  cost?: number;
   scheduled_at: string | null;
   launched_at: string | null;
   completed_at: string | null;
@@ -39,6 +40,7 @@ export type Campaign = {
     customer_count: number;
     natural_language_query?: string;
   };
+  campaign_stats?: CampaignStats;
 };
 
 export type CommunicationStatus =
@@ -67,6 +69,11 @@ export type CampaignStats = {
   total_failed: number;
   total_opened: number;
   total_clicked: number;
+  total_conversions: number;
+  total_revenue: number;
+  conversion_rate: number;
+  roi: number;
+  average_order_value: number;
   updated_at: string;
   delivery_rate: number;
   open_rate: number;
@@ -91,4 +98,49 @@ export type CampaignInsight = {
   summary: string;
   highlights: string[];
   recommendations: string[];
+  revenueImpact?: string;
+  suggestedNextCampaign?: string;
 };
+
+// ---- Strategist ---------------------------------------------
+export type StrategyPrediction = {
+  deliveryRate: number;
+  openRate: number;
+  ctr: number;
+  conversionRate: number;
+};
+
+export type StrategyMessageVariant = {
+  tone: 'Formal' | 'Friendly' | 'Urgent';
+  subject?: string;
+  body: string;
+};
+
+export type CampaignStrategy = {
+  strategyName: string;
+  segmentName: string;
+  naturalLanguageQuery: string;
+  sqlFilter: string;
+  recommendedChannel: MessageChannel;
+  channelExplanation: string;
+  predictions: StrategyPrediction;
+  variants: StrategyMessageVariant[];
+  estimatedCount: number;
+};
+
+// ---- Operations ---------------------------------------------
+export type OperationsMetrics = {
+  activeCampaigns: number;
+  queueSize: number;
+  waitingJobs: number;
+  activeJobs: number;
+  completedJobs: number;
+  failedJobs: number;
+  avgLatencyMs: number;
+  failedJobsCount: number;
+  retryCount: number;
+  callbackFailures: number;
+  channelHealth: 'healthy' | 'offline';
+};
+
+

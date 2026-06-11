@@ -14,6 +14,8 @@ export interface CallbackJobData {
   outcome: 'delivered' | 'failed';
   willOpen: boolean;
   willClick: boolean;
+  willConvert?: boolean;
+  customerId?: string;
 }
 
 export const callbackQueue = IS_MOCK_REDIS

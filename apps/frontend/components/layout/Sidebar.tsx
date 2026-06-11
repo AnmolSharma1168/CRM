@@ -9,6 +9,8 @@ import {
   Megaphone,
   MessageSquareText,
   Zap,
+  Sparkles,
+  Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -17,7 +19,9 @@ const navItems = [
   { href: '/customers', label: 'Customers', icon: Users },
   { href: '/segments', label: 'Segments', icon: Filter },
   { href: '/campaigns', label: 'Campaigns', icon: Megaphone },
+  { href: '/strategist', label: 'AI Strategist', icon: Sparkles, highlight: true },
   { href: '/ai-chat', label: 'AI Chat', icon: MessageSquareText, highlight: true },
+  { href: '/operations', label: 'Ops Dashboard', icon: Activity },
 ];
 
 export function Sidebar() {
@@ -70,7 +74,7 @@ export function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-border/50">
         <div className="text-xs text-muted-foreground text-center">
-          Powered by <span className="text-primary">Gemini 2.0 Flash</span>
+          Powered by <span className="text-primary">Mistral Large</span>
         </div>
       </div>
     </aside>
