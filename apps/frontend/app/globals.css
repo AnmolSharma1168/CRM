@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  /* Background colors */
+  --color-background: hsl(222, 47%, 6%);
+  --color-foreground: hsl(210, 40%, 96%);
+  --color-card: hsl(222, 47%, 9%);
+  --color-card-foreground: hsl(210, 40%, 96%);
+  
+  /* Primary - purple */
+  --color-primary: hsl(266, 85%, 68%);
+  --color-primary-foreground: hsl(0, 0%, 100%);
+  
+  /* Secondary */
+  --color-secondary: hsl(217, 33%, 15%);
+  --color-secondary-foreground: hsl(210, 40%, 96%);
+  
+  /* Muted */
+  --color-muted: hsl(217, 33%, 15%);
+  --color-muted-foreground: hsl(215, 20%, 55%);
+  
+  /* Border */
+  --color-border: hsl(217, 33%, 17%);
+  --color-input: hsl(217, 33%, 15%);
+  
+  /* Destructive */
+  --color-destructive: hsl(0, 72%, 58%);
+  --color-destructive-foreground: hsl(0, 0%, 100%);
+  
+  /* Radius */
+  --radius: 0.75rem;
+}
+
+/* Force dark mode globally */
+html {
+  color-scheme: dark;
+}
+
+@layer base {
+  body {
+    background-color: hsl(222, 47%, 6%);
+    color: hsl(210, 40%, 96%);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    border-color: hsl(217, 33%, 17%);
+    box-sizing: border-box;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(222, 47%, 6%);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(217, 33%, 22%);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(215, 20%, 40%);
+  }
+}
+
+@layer utilities {
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(266, 85%, 75%), hsl(239, 84%, 75%), hsl(187, 100%, 68%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glass card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* Glow effects */
+  .glow-purple {
+    box-shadow: 0 0 30px rgba(147, 51, 234, 0.15);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.15);
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.shimmer {
+  background: linear-gradient(
+    to right,
+    hsl(217, 33%, 15%) 4%,
+    hsl(217, 33%, 20%) 25%,
+    hsl(217, 33%, 15%) 36%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.typing-cursor::after {
+  content: '▋';
+  animation: blink 1s step-end infinite;
+  color: hsl(266, 85%, 68%);
+}
