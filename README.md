@@ -4,9 +4,8 @@ A chat-first, AI-native Mini CRM where a brand marketer describes their intent i
 
 ## 🚀 Live URLs
 
-- **Frontend:** https://xeno-crm.vercel.app (deploy to Vercel)
-- **Backend:** https://xeno-crm-backend.railway.app (deploy to Railway)
-- **Channel Service:** https://xeno-crm-channel.railway.app (deploy to Railway)
+- **Backend:** https://xenocrm-backend-ijy1.onrender.com (Deployed on Render)
+- **Channel Service:** https://xenocrm-channel-service-rhso.onrender.com (Deployed on Render)
 
 ---
 
