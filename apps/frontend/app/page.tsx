@@ -125,14 +125,20 @@ export default function DashboardPage() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8 animate-fade-in">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold gradient-text">Dashboard</h1>
+      <div className="mb-8 animate-fade-in flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold font-display text-slate-800">Hello, Sarah</h1>
+          <p className="text-slate-400 text-sm">Welcome back. Here's what's happening with your campaigns.</p>
         </div>
-        <p className="text-muted-foreground text-sm">Welcome back. Here's what's happening with your campaigns.</p>
+        <div className="flex items-center gap-6">
+          <div className="relative hidden sm:block">
+            <input 
+              type="text" 
+              placeholder="Search campaigns..." 
+              className="bg-white border border-slate-200 rounded-2xl py-2.5 px-4 text-sm w-72 focus:ring-1 focus:ring-teal-400 outline-none transition-all" 
+            />
+          </div>
+        </div>
       </div>
 
       {/* DB Setup Banner */}
@@ -205,13 +211,15 @@ export default function DashboardPage() {
       </div>
 
       {/* Top Performing Campaigns Leaderboard */}
-      <Card className="mb-8 animate-fade-in p-0 overflow-hidden border-amber-500/10">
-        <div className="px-6 py-4 border-b border-border/50 flex items-center justify-between bg-card">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-amber-400" />
+      <Card className="mb-8 animate-fade-in p-0 overflow-hidden border-slate-200/50 shadow-sm bg-white">
+        <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-soft-teal text-vibrant-teal rounded-2xl flex items-center justify-center">
+              <Trophy className="w-5 h-5" />
+            </div>
             <div>
-              <h2 className="font-semibold text-sm">Top Performing Campaigns</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <h2 className="font-bold text-base text-slate-800 font-display">Top Performing Campaigns</h2>
+              <p className="text-xs text-slate-400 mt-0.5">
                 Leaderboard of campaigns ranked by revenue, ROI, and click-through rates
               </p>
             </div>
@@ -220,7 +228,7 @@ export default function DashboardPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border/50 bg-secondary/15">
+              <tr className="border-b border-slate-100 bg-slate-50/50">
                 <th 
                   className="text-left px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors select-none"
                   onClick={() => requestSort('name')}
@@ -299,7 +307,7 @@ export default function DashboardPage() {
                   return (
                     <tr 
                       key={campaign.id} 
-                      className="hover:bg-secondary/20 transition-colors group cursor-pointer"
+                      className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                       onClick={() => router.push(`/campaigns/${campaign.id}`)}
                     >
                       <td className="px-6 py-4">
@@ -308,11 +316,11 @@ export default function DashboardPage() {
                             {getChannelEmoji(campaign.channel)}
                           </span>
                           <div>
-                            <div className="text-sm font-semibold group-hover:text-primary transition-colors">
+                            <div className="text-sm font-bold text-slate-800 group-hover:text-vibrant-teal transition-colors">
                               {campaign.name}
                             </div>
-                            <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
-                              <Badge variant={statusVariantMap[campaign.status] ?? 'default'} className="text-[10px] px-1 py-0 scale-95 origin-left">
+                            <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                              <Badge variant={statusVariantMap[campaign.status] ?? 'default'} className="scale-90 origin-left">
                                 {campaign.status}
                               </Badge>
                               <span>• {formatRelativeDate(campaign.created_at)}</span>
@@ -320,16 +328,16 @@ export default function DashboardPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-right font-medium text-emerald-400">
+                      <td className="px-6 py-4 text-right font-bold text-emerald-600">
                         {formatCurrency(revenue)}
                       </td>
-                      <td className="px-6 py-4 text-right text-cyan-400 font-mono">
+                      <td className="px-6 py-4 text-right text-slate-700 font-mono font-medium">
                         {conversions.toLocaleString()}
                       </td>
-                      <td className="px-6 py-4 text-right text-purple-400 font-semibold font-mono">
+                      <td className="px-6 py-4 text-right text-lime-600 font-semibold font-mono">
                         {Number(roi).toFixed(2)}x
                       </td>
-                      <td className="px-6 py-4 text-right text-violet-400 font-mono">
+                      <td className="px-6 py-4 text-right text-slate-600 font-mono">
                         {ctr.toFixed(1)}%
                       </td>
                     </tr>
@@ -343,13 +351,15 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Campaigns */}
-        <Card className="animate-fade-in">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2">
-              <Megaphone className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-sm">Recent Campaigns</h2>
+        <Card className="animate-fade-in bg-white border border-slate-200/50 shadow-sm rounded-[2rem]">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-soft-teal text-vibrant-teal rounded-2xl flex items-center justify-center">
+                <Megaphone className="w-5 h-5" />
+              </div>
+              <h2 className="font-bold text-base text-slate-800 font-display">Recent Campaigns</h2>
             </div>
-            <Link href="/campaigns" className="text-xs text-primary hover:underline flex items-center gap-1">
+            <Link href="/campaigns" className="text-xs font-bold text-vibrant-teal hover:underline flex items-center gap-1 uppercase tracking-wider">
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -358,24 +368,24 @@ export default function DashboardPage() {
             {loading ? (
               Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-14" />)
             ) : recentCampaigns.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm">
+              <div className="text-center py-8 text-slate-400 text-sm">
                 No campaigns yet.{' '}
-                <Link href="/campaigns/new" className="text-primary hover:underline">Create one →</Link>
+                <Link href="/campaigns/new" className="text-vibrant-teal hover:underline font-bold">Create one →</Link>
               </div>
             ) : (
               recentCampaigns.map((campaign) => (
                 <Link
                   key={campaign.id}
                   href={`/campaigns/${campaign.id}`}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary/50 transition-colors group"
+                  className="flex items-center justify-between p-4 rounded-2xl border border-transparent hover:border-slate-100 hover:bg-slate-50/50 transition-all group"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{getChannelEmoji(campaign.channel)}</span>
                     <div>
-                      <div className="text-sm font-medium group-hover:text-primary transition-colors">
+                      <div className="text-sm font-bold text-slate-800 group-hover:text-vibrant-teal transition-colors">
                         {campaign.name}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-slate-400 mt-0.5">
                         {formatRelativeDate(campaign.created_at)}
                       </div>
                     </div>
@@ -390,13 +400,15 @@ export default function DashboardPage() {
         </Card>
 
         {/* Recent Customers */}
-        <Card className="animate-fade-in">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-cyan-400" />
-              <h2 className="font-semibold text-sm">Recent Customers</h2>
+        <Card className="animate-fade-in bg-white border border-slate-200/50 shadow-sm rounded-[2rem]">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-soft-lime text-vibrant-lime rounded-2xl flex items-center justify-center">
+                <Users className="w-5 h-5" />
+              </div>
+              <h2 className="font-bold text-base text-slate-800 font-display">Recent Customers</h2>
             </div>
-            <Link href="/customers" className="text-xs text-primary hover:underline flex items-center gap-1">
+            <Link href="/customers" className="text-xs font-bold text-vibrant-teal hover:underline flex items-center gap-1 uppercase tracking-wider">
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -405,24 +417,24 @@ export default function DashboardPage() {
             {loading ? (
               Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-14" />)
             ) : recentCustomers.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm">No customers yet.</div>
+              <div className="text-center py-8 text-slate-400 text-sm">No customers yet.</div>
             ) : (
               recentCustomers.map((customer) => (
-                <div key={customer.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary/50 transition-colors">
+                <div key={customer.id} className="flex items-center justify-between p-4 rounded-2xl border border-transparent hover:border-slate-100 hover:bg-slate-50/50 transition-all">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/20 to-violet-500/20 border border-purple-500/20 flex items-center justify-center text-xs font-semibold text-purple-400">
+                    <div className="w-10 h-10 rounded-2xl bg-soft-teal border border-teal-200/50 flex items-center justify-center text-xs font-bold text-teal-700 shadow-sm">
                       {customer.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <div className="text-sm font-medium">{customer.name}</div>
-                      <div className="text-xs text-muted-foreground">{customer.city}</div>
+                      <div className="text-sm font-bold text-slate-800">{customer.name}</div>
+                      <div className="text-xs text-slate-400 mt-0.5">{customer.city}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-semibold text-emerald-400">
+                    <div className="text-sm font-bold text-slate-800">
                       {formatCurrency(customer.total_spent)}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-slate-400 mt-0.5">
                       {customer.order_count} orders
                     </div>
                   </div>
@@ -441,34 +453,34 @@ export default function DashboardPage() {
             icon: '🔖',
             title: 'Create Segment',
             desc: 'Use AI to describe your audience',
-            color: 'border-purple-500/20 hover:border-purple-500/40',
+            color: 'hover:shadow-teal-500/5 hover:border-teal-300',
           },
           {
             href: '/campaigns/new',
             icon: '🚀',
             title: 'Launch Campaign',
             desc: 'AI drafts messages for you',
-            color: 'border-cyan-500/20 hover:border-cyan-500/40',
+            color: 'hover:shadow-lime-500/5 hover:border-teal-300',
           },
           {
             href: '/ai-chat',
             icon: '💬',
             title: 'Chat with XenoAI',
             desc: 'Ask anything about your data',
-            color: 'border-emerald-500/20 hover:border-emerald-500/40',
+            color: 'hover:shadow-rose-500/5 hover:border-teal-300',
           },
         ].map((action) => (
           <Link
             key={action.href}
             href={action.href}
             className={cn(
-              'p-4 rounded-xl border bg-card/50 transition-all duration-200 hover:scale-[1.02] group',
+              'p-6 rounded-[2rem] border bg-white shadow-sm border-slate-200/50 transition-all duration-200 hover:scale-[1.02] group',
               action.color
             )}
           >
             <div className="text-2xl mb-2">{action.icon}</div>
-            <div className="font-semibold text-sm group-hover:text-primary transition-colors">{action.title}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">{action.desc}</div>
+            <div className="font-bold text-sm text-slate-800 group-hover:text-vibrant-teal transition-colors font-display">{action.title}</div>
+            <div className="text-xs text-slate-400 mt-1">{action.desc}</div>
           </Link>
         ))}
       </div>

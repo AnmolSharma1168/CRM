@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Toaster } from "@/components/ui/Toaster";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "XenoCRM — AI-Native Customer Relationship Manager",
@@ -22,10 +19,10 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@500,600,700&f[]=plus-jakarta-sans@400,500,600,700&display=swap" />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`} style={{ background: 'hsl(222,47%,6%)', color: 'hsl(210,40%,96%)' }}>
-        <div className="flex h-screen overflow-hidden">
+      <body className="antialiased">
+        <div className="flex h-screen overflow-hidden bg-[#F0F4F8]">
           <Sidebar />
           <main className="flex-1 overflow-y-auto">
             {children}

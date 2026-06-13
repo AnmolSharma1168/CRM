@@ -1,54 +1,66 @@
 @import "tailwindcss";
 
 @theme {
-  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Clash Grotesk', system-ui, -apple-system, sans-serif;
   
-  /* Background colors */
-  --color-background: hsl(222, 47%, 6%);
-  --color-foreground: hsl(210, 40%, 96%);
-  --color-card: hsl(222, 47%, 9%);
-  --color-card-foreground: hsl(210, 40%, 96%);
+  /* Primary colours */
+  --color-primary: #2DD4BF;
+  --color-primary-foreground: #ffffff;
   
-  /* Primary - purple */
-  --color-primary: hsl(266, 85%, 68%);
-  --color-primary-foreground: hsl(0, 0%, 100%);
+  /* Custom vibrant colors from the user reference */
+  --color-vibrant-teal: #2DD4BF;
+  --color-vibrant-lime: #A3E635;
+  --color-vibrant-coral: #FB7185;
   
-  /* Secondary */
-  --color-secondary: hsl(217, 33%, 15%);
-  --color-secondary-foreground: hsl(210, 40%, 96%);
-  
-  /* Muted */
-  --color-muted: hsl(217, 33%, 15%);
-  --color-muted-foreground: hsl(215, 20%, 55%);
-  
-  /* Border */
-  --color-border: hsl(217, 33%, 17%);
-  --color-input: hsl(217, 33%, 15%);
-  
-  /* Destructive */
-  --color-destructive: hsl(0, 72%, 58%);
-  --color-destructive-foreground: hsl(0, 0%, 100%);
+  --color-soft-teal: rgba(45, 212, 191, 0.1);
+  --color-soft-lime: rgba(163, 230, 53, 0.1);
+  --color-soft-coral: rgba(251, 113, 133, 0.1);
+
+  /* shadcn mapping compatibility in light theme */
+  --color-background: #F0F4F8;
+  --color-foreground: #1E293B;
+  --color-card: #ffffff;
+  --color-card-foreground: #1E293B;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1E293B;
+  --color-secondary: #F8FAFC;
+  --color-secondary-foreground: #1E293B;
+  --color-muted: #E2E8F0;
+  --color-muted-foreground: #64748B;
+  --color-accent: #F1F5F9;
+  --color-accent-foreground: #1E293B;
+  --color-destructive: #EF4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: rgba(226, 232, 240, 0.8);
+  --color-input: #F1F5F9;
+  --color-ring: #2DD4BF;
   
   /* Radius */
-  --radius: 0.75rem;
+  --radius: 1.5rem;
+  --radius-box: 2rem;
 }
 
-/* Force dark mode globally */
+/* Force light mode globally */
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 @layer base {
   body {
-    background-color: hsl(222, 47%, 6%);
-    color: hsl(210, 40%, 96%);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #F0F4F8;
+    color: #1E293B;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: 'Clash Grotesk', sans-serif;
+  }
+
   * {
-    border-color: hsl(217, 33%, 17%);
+    border-color: rgba(226, 232, 240, 0.8);
     box-sizing: border-box;
   }
 
@@ -58,21 +70,45 @@ html {
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: hsl(222, 47%, 6%);
+    background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(217, 33%, 22%);
-    border-radius: 3px;
+    background: #E2E8F0;
+    border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(215, 20%, 40%);
+    background: #CBD5E1;
   }
 }
 
 @layer utilities {
+  .card-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  }
+
+  .vibrant-teal {
+    background-color: #2DD4BF;
+  }
+  .vibrant-lime {
+    background-color: #A3E635;
+  }
+  .vibrant-coral {
+    background-color: #FB7185;
+  }
+
+  .bg-soft-teal {
+    background-color: rgba(45, 212, 191, 0.1);
+  }
+  .bg-soft-lime {
+    background-color: rgba(163, 230, 53, 0.1);
+  }
+  .bg-soft-coral {
+    background-color: rgba(251, 113, 133, 0.1);
+  }
+
   /* Gradient text */
   .gradient-text {
-    background: linear-gradient(135deg, hsl(266, 85%, 75%), hsl(239, 84%, 75%), hsl(187, 100%, 68%));
+    background: linear-gradient(135deg, #2DD4BF, #A3E635, #FB7185);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -80,18 +116,18 @@ html {
 
   /* Glass card */
   .glass-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.4);
   }
 
   /* Glow effects */
-  .glow-purple {
-    box-shadow: 0 0 30px rgba(147, 51, 234, 0.15);
+  .glow-teal {
+    box-shadow: 0 0 30px rgba(45, 212, 191, 0.15);
   }
 
-  .glow-cyan {
-    box-shadow: 0 0 30px rgba(6, 182, 212, 0.15);
+  .glow-lime {
+    box-shadow: 0 0 30px rgba(163, 230, 53, 0.15);
   }
 }
 
@@ -124,9 +160,9 @@ html {
 .shimmer {
   background: linear-gradient(
     to right,
-    hsl(217, 33%, 15%) 4%,
-    hsl(217, 33%, 20%) 25%,
-    hsl(217, 33%, 15%) 36%
+    #F1F5F9 4%,
+    #E2E8F0 25%,
+    #F1F5F9 36%
   );
   background-size: 1000px 100%;
   animation: shimmer 1.5s infinite;
@@ -135,5 +171,5 @@ html {
 .typing-cursor::after {
   content: '▋';
   animation: blink 1s step-end infinite;
-  color: hsl(266, 85%, 68%);
+  color: #2DD4BF;
 }
