@@ -70,18 +70,6 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer / Account card */}
-      <div className="mt-auto pt-6 border-t border-slate-100">
-        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/50">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Account</p>
-          <p className="text-xs text-slate-600 mb-4">Manage your CRM workspace settings.</p>
-          <Link href="/operations">
-            <button className="w-full py-2.5 bg-white border border-slate-200 text-slate-800 text-[10px] font-bold rounded-xl hover:bg-slate-100 transition-all uppercase tracking-wider">
-              Control Panel
-            </button>
-          </Link>
-        </div>
-      </div>
     </aside>
   );
 }
