@@ -127,7 +127,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="mb-8 animate-fade-in flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold font-display text-slate-800">Hello, Sarah</h1>
+          <h1 className="text-3xl font-bold font-display text-slate-800">Hello, User</h1>
           <p className="text-slate-400 text-sm">Welcome back. Here's what's happening with your campaigns.</p>
         </div>
         <div className="flex items-center gap-6">
