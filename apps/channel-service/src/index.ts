@@ -1,15 +1,44 @@
 import 'dotenv/config';
 import 'express-async-errors';
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { z } from 'zod';
 import { callbackQueue } from './queue';
 import { startWorker } from './worker';
 import type { CallbackJobData } from './queue';
+import { IS_MOCK_REDIS } from './redis';
 
 const app = express();
 const PORT = process.env.CHANNEL_SERVICE_PORT ?? process.env.PORT ?? 3002;
 
+// ---- Production & Security Settings -------------------------
+// Trust proxy is required when running behind load balancers like Render/Vercel
+// to resolve client IPs correctly via X-Forwarded-For headers
+app.set('trust proxy', 1);
+
+// Disable X-Powered-By to prevent exposing technology stack details
+app.disable('x-powered-by');
+
+// Custom security headers middleware (lightweight alternative to helmet)
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  next();
+});
+
+// ---- Request Logger Middleware ------------------------------
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
+  });
+  next();
+});
+
+// ---- Middleware ---------------------------------------------
 app.use(cors());
 app.use(express.json());
 
@@ -88,11 +117,38 @@ app.post('/send', async (req: Request, res: Response) => {
   });
 });
 
-// ---- GET /health -------------------------------------------
-app.get('/health', (_req: Request, res: Response) => {
+// ---- Health & Root Routes -----------------------------------
+// 1. Root route for deployment platform ping & visibility
+app.get('/', (_req: Request, res: Response) => {
   res.json({
-    success: true,
-    data: { status: 'ok', service: 'xeno-channel-service', ts: new Date().toISOString() },
+    status: 'ok',
+    service: 'XenoCRM Channel Service',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 2. Health check route with database (Redis) connectivity verification
+app.get('/health', async (_req: Request, res: Response) => {
+  let dbStatus: 'connected' | 'unknown' = 'connected';
+
+  if (!IS_MOCK_REDIS) {
+    try {
+      const client = await callbackQueue.client;
+      const pingRes = await client.ping();
+      if (pingRes !== 'PONG') {
+        dbStatus = 'unknown';
+      }
+    } catch (err) {
+      console.error('Redis connection check failed in health check:', err);
+      dbStatus = 'unknown';
+    }
+  }
+
+  res.json({
+    status: 'healthy',
+    database: dbStatus,
+    environment: process.env.NODE_ENV ?? 'development'
   });
 });
 
@@ -135,12 +191,54 @@ app.use((err: Error, _req: Request, res: Response, _next: express.NextFunction) 
 });
 
 // ---- Start -------------------------------------------------
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`📡 XenoCRM Channel Service running on port ${PORT}`);
   console.log(`   POST /send → queues callbacks via BullMQ`);
 });
 
 // Start BullMQ worker in same process
-startWorker();
+const worker = startWorker();
+
+// ---- Graceful Shutdown --------------------------------------
+const gracefulShutdown = (signal: string) => {
+  console.log(`\nReceived ${signal}. Starting graceful shutdown for Channel Service...`);
+  
+  server.close(async () => {
+    console.log('HTTP server closed successfully.');
+    
+    // Gracefully shut down BullMQ worker if applicable
+    if (worker && typeof worker.close === 'function') {
+      try {
+        console.log('Closing BullMQ worker...');
+        await worker.close();
+        console.log('BullMQ worker closed.');
+      } catch (err) {
+        console.error('Error closing BullMQ worker:', err);
+      }
+    }
+
+    // Gracefully shut down BullMQ queue connection
+    if (callbackQueue && typeof callbackQueue.close === 'function') {
+      try {
+        console.log('Closing BullMQ queue client...');
+        await callbackQueue.close();
+        console.log('BullMQ queue client closed.');
+      } catch (err) {
+        console.error('Error closing BullMQ queue:', err);
+      }
+    }
+    
+    process.exit(0);
+  });
+
+  // Force close after 10 seconds if connections fail to close
+  setTimeout(() => {
+    console.error('Could not close connections in time, forcefully shutting down.');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 export default app;
