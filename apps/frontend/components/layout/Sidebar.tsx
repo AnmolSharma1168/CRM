@@ -35,7 +35,7 @@ export function Sidebar() {
           <Rocket className="w-5 h-5 text-white" />
         </div>
         <span className="text-xl font-bold font-display tracking-tight text-slate-800">
-          VELO<span className="text-teal-500">CRM</span>
+          XENO<span className="text-teal-500">CRM</span>
         </span>
       </div>
 
